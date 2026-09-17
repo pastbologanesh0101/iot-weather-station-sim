@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>IoT Weather Station (Simulated) - Dashboard</title>
+  <style>
+    body {
+      font-family: -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      max-width: 900px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+      color: #1a1a1a;
+      background: #fafafa;
+    }
+    h1 { font-size: 1.4rem; }
+    .banner {
+      background: #fff3cd;
+      border: 1px solid #ffe69c;
+      padding: 0.75rem 1rem;
+      border-radius: 6px;
+      margin-bottom: 1.5rem;
+      font-size: 0.9rem;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-bottom: 2rem;
+      background: white;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 0.5rem 0.75rem;
+      text-align: left;
+      font-size: 0.9rem;
+    }
+    th { background: #f0f0f0; }
+    .sparkline { font-size: 1.3rem; letter-spacing: 1px; }
+    .station-block {
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+    code { background: #eee; padding: 0.1rem 0.3rem; border-radius: 3px; }
+  </style>
+</head>
+<body>
+  <h1>IoT Weather Station Dashboard</h1>
+  <div class="banner">
+    <strong>Note:</strong> All sensor readings shown here are <strong>simulated in software</strong>
+    (synthetic temperature/humidity/pressure/wind generation) &mdash; there is no real hardware.
+    The ingestion API, SQLite storage, and analysis/alert logic are fully real.
+  </div>
+
+  <h2>Latest reading per station</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Station</th>
+        <th>Timestamp</th>
+        <th>Temp (C)</th>
+        <th>Humidity (%)</th>
+        <th>Pressure (hPa)</th>
+        <th>Wind (m/s)</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in latest %}
+      <tr>
+        <td>{{ r.station_id }}</td>
+        <td>{{ r.timestamp }}</td>
+        <td>{{ "%.1f"|format(r.temperature) }}</td>
+        <td>{{ "%.1f"|format(r.humidity) }}</td>
+        <td>{{ "%.1f"|format(r.pressure) }}</td>
+        <td>{{ "%.1f"|format(r.wind_speed) if r.wind_speed is not none else "-" }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="6">No readings yet. POST some to <code>/readings</code>.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <h2>Recent temperature history</h2>
+  {% for station_id, data in histories.items() %}
+  <div class="station-block">
+    <strong>{{ station_id }}</strong>
+    <div class="sparkline">{{ data.sparkline }}</div>
+    <table>
+      <thead>
+        <tr><th>Timestamp</th><th>Temp (C)</th></tr>
+      </thead>
+      <tbody>
+        {% for r in data.readings %}
+        <tr>
+          <td>{{ r.timestamp }}</td>
+          <td>{{ "%.1f"|format(r.temperature) }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endfor %}
+</body>
+</html>
